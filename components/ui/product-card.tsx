@@ -31,7 +31,7 @@ export function ProductCard({
           <Badge variant="secondary">{price}</Badge>
         </CardAction>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>
+        <CardDescription className="text-gray-700 text-sm line-clamp-3">
           {description} A practical talk on component APIs, accessibility, and
           shipping faster.
         </CardDescription>
