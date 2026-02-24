@@ -1,17 +1,11 @@
 import { ProductCard } from "@/components/ui/product-card";
 import { ProductResponse } from "@/lib/type/product";
+import Link from "next/link";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function loadProducts() {
-  const response = await fetch(`${BASE_URL}/api/v1/products/`, {
-    method: "GET",
-    cache: "no-store", 
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
-  }
+  const response = await fetch(`${BASE_URL}/api/v1/products/`);
 
   const products = await response.json();
   return products;
@@ -30,6 +24,7 @@ export default async function ProductsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product: ProductResponse) => (
+            <Link key={product.id} href={`/products/${product.id}`}>
             <ProductCard
               key={product.id}
               id={product.id}
@@ -42,6 +37,7 @@ export default async function ProductsPage() {
               creationAt={product.creationAt}
               updatedAt={product.updatedAt}
             />
+            </Link>
           ))}
         </div>
       </section>

@@ -29,7 +29,6 @@ export default function Home() {
           </p>
         </Link>
 
-        {/* Users Card */}
         <Link
           href="/users"
           className="group rounded-xl border border-gray-200 bg-white shadow-sm p-6 transition-transform hover:-translate-y-1 hover:shadow-lg hover:bg-gray-50"

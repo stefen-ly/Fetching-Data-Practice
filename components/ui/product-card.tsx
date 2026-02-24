@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Card,
   CardAction,
@@ -12,6 +13,12 @@ import {
 import { ProductResponse } from "@/lib/type/product";
 import { title } from "process";
 
+type ProductCardProps = {
+  title: string;
+  price: number;
+  image?: string[];
+};
+
 export function ProductCard({
   images = ["https://i.imgur.com/KeqG6r4.jpeg"],
   title = "Design systems meetup",
@@ -19,11 +26,13 @@ export function ProductCard({
   price = 100
 }: ProductResponse) {
   return (
-    <Card className="relative mx-auto w-full max-w-sm pt-0">
+    <Card className="relative mx-auto w-full max-w-sm pt-0 overflow-hidden rounded-2xl shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
       <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-      <img
+      <Image
         src={images[0]}
-        alt="Event cover"
+        alt="Product image"
+        width={300}
+        height={200}
         className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
       />
       <CardHeader>

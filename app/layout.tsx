@@ -1,7 +1,8 @@
-// app/layout.tsx
 import "./globals.css";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import Link from "next/link";
+import ProductLoading from "./products/loading";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
   title: "My App",
@@ -9,7 +10,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const pathname = "";
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/products", label: "Products" },
@@ -17,41 +17,33 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <html lang="en">
-      <head />
-      <body className="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
-        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-md">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-2xl font-extrabold text-blue-600">My App</h1>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col">
+        <ThemeProvider enableSystem disableTransitionOnChange>
+          
+          {/* Navigation */}
+          <nav className="bg-gray-900 text-white px-6 py-4">
+            <div className="max-w-7xl mx-auto flex gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="hover:text-yellow-400 transition"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </nav>
 
-            <nav>
-              <ul className="flex gap-6">
-                {navLinks.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className={`font-medium transition-colors ${
-                        pathname === link.href
-                          ? "text-blue-600 underline"
-                          : "text-gray-700 hover:text-blue-600"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-        </header>
+          {/* Main Content */}
+          <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+            <Suspense fallback={<ProductLoading />}>
+              {children}
+            </Suspense>
+          </main>
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-          {children}
-        </main>
-
-        <footer className="bg-white border-t mt-auto p-6 text-center text-gray-500 text-sm">
-          &copy; {new Date().getFullYear()} My App. All rights reserved.
-        </footer>
+        </ThemeProvider>
       </body>
     </html>
   );
