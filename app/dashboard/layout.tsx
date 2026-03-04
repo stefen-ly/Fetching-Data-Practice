@@ -14,8 +14,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import modal from "./@modal/(..)photos/[id]/modal";
-
 export default function DashboardLayout({
   children, users, analytics, modal
 }: {
@@ -51,13 +49,12 @@ export default function DashboardLayout({
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                 {children}
                 {users}
                 {analytics}
-                {modal}
-          </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+                      {modal}
+
+          {/* <div className="bg/-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" /> */}
         </div>
       </SidebarInset>
     </SidebarProvider>
