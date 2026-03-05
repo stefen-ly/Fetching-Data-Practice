@@ -24,7 +24,6 @@ import { use, useRef } from "react";
 import { insertProduct } from "@/lib/data/products";
 import Image from "next/image";
 import { Upload, X, Loader2 } from "lucide-react";
-import { ToastDemo } from "../toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -93,54 +92,31 @@ export default function ProductForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  async function uploadImage(file: File): Promise<string | null> {
-    const formData = new FormData();
-    formData.append("file", file);
+async function uploadImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
 
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/files/upload`, {
-        // ✅ added /api/v1
-        method: "POST",
-        body: formData,
-      });
+  const res = await fetch(`${API_BASE}/api/v1/files/upload`, {
+    method: "POST",
+    body: formData,
+  });
 
-      if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
+  if (!res.ok) throw new Error("Image upload failed. Please try again.");
 
-      const data = await res.json();
-      return data.location;
-    } catch (err: any) {
-      console.error(err);
-      form.setError("root", { message: "Image upload failed." });
-      return null;
-    }
-  }
-
-  // async function onSubmit(values: FormValues) {
-  //   let imageUrl: string | null = null;
-  //   if (values.image) imageUrl = await uploadImage(values.image);
-
-  //   const productData = {
-  //     title: values.title.trim(),
-  //     price: Number(values.price),
-  //     description: values.description.trim(),
-  //     categoryId: Number(values.categoryId),
-  //     images: imageUrl ? [imageUrl] : ["https://placehold.co/600x400?text=No+Image"],
-  //   };
-
-  //   try {
-  //     const result = await insertProduct(productData);
-  //     console.log("Product created:", result);
-  //     form.reset();
-  //     if (fileInputRef.current) fileInputRef.current.value = "";
-  //   } catch (err) {
-  //     console.error(err);
-  //     form.setError("root", { message: "Failed to create product. Please try again." });
-  //   }
-  // }
+  const data = await res.json();
+  return data.location;
+}
 
   async function onSubmit(values: FormValues) {
+  try {
     let imageUrl: string | null = null;
-    if (values.image) imageUrl = await uploadImage(values.image);
+    if (values.image) {
+      imageUrl = await uploadImage(values.image);
+      
+      if (!imageUrl) {
+        throw new Error("Image upload failed. Please try again.");
+      }
+    }
 
     const productData = {
       title: values.title.trim(),
@@ -152,31 +128,43 @@ export default function ProductForm({
         : ["https://placehold.co/600x400?text=No+Image"],
     };
 
-    try {
-      const result = await insertProduct(productData);
-      console.log("Product created:", result);
-      form.reset();
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      toast.success("Product created successfully!", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-    } catch (err) {
-      console.error(err);
-      form.setError("root", {
-        message: "Failed to create product. Please try again.",
-      });
-      toast.error("Failed to create product. Please try again.");
-    }
-  }
+    const result = await insertProduct(productData);
 
+    if (result?.name?.includes("Error") || result?.code) {
+      throw new Error(
+        result.code === "SQLITE_CONSTRAINT_UNIQUE"
+          ? "This product with this title already exists."
+          : result.message || "Failed to create product."
+      );
+    }
+
+    form.reset();
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    toast.success("Product created successfully!", {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
+  } catch (err: any) {
+    console.error(err);
+    form.setError("root", { message: err.message || "Something went wrong." });
+    toast.error(err.message || "Something went wrong.", {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "light",
+      transition: Bounce,
+    });
+  }
+}
   const isSubmitting = form.formState.isSubmitting;
 
   return (
@@ -330,12 +318,6 @@ export default function ProductForm({
               </Field>
             )}
           />
-
-          {form.formState.errors.root && (
-            <div className="text-destructive text-sm text-center py-2">
-              {form.formState.errors.root.message}
-            </div>
-          )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
