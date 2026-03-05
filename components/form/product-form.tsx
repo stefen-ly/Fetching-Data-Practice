@@ -1,5 +1,5 @@
 "use client";
-
+import { Bounce, ToastContainer, toast } from "react-toastify";
 import {
   Field,
   FieldLabel,
@@ -24,23 +24,29 @@ import { use, useRef } from "react";
 import { insertProduct } from "@/lib/data/products";
 import Image from "next/image";
 import { Upload, X, Loader2 } from "lucide-react";
+import { ToastDemo } from "../toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const formSchema = z.object({
-  title: z.string()
+  title: z
+    .string()
     .min(5, "Title must be at least 5 characters.")
     .max(100, "Title is too long.")
     .trim(),
-  price: z.string()
+  price: z
+    .string()
     .min(1, "Price is required.")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Price must be > 0."),
-  description: z.string()
+    .refine(
+      (val) => !isNaN(Number(val)) && Number(val) > 0,
+      "Price must be > 0.",
+    ),
+  description: z
+    .string()
     .min(20, "Description too short (min 20 chars).")
     .max(1000, "Description too long.")
     .trim(),
-  categoryId: z.string()
-    .min(1, "Please select a category."),
+  categoryId: z.string().min(1, "Please select a category."),
   image: z.instanceof(File).nullable().optional(),
 });
 
@@ -87,26 +93,50 @@ export default function ProductForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-async function uploadImage(file: File): Promise<string | null> {
-  const formData = new FormData();
-  formData.append("file", file);
+  async function uploadImage(file: File): Promise<string | null> {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  try {
-    const res = await fetch(`${API_BASE}/api/v1/files/upload`, { // ✅ added /api/v1
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/files/upload`, {
+        // ✅ added /api/v1
+        method: "POST",
+        body: formData,
+      });
 
-    if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
+      if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
 
-    const data = await res.json();
-    return data.location;
-  } catch (err: any) {
-    console.error(err);
-    form.setError("root", { message: "Image upload failed." });
-    return null;
+      const data = await res.json();
+      return data.location;
+    } catch (err: any) {
+      console.error(err);
+      form.setError("root", { message: "Image upload failed." });
+      return null;
+    }
   }
-}
+
+  // async function onSubmit(values: FormValues) {
+  //   let imageUrl: string | null = null;
+  //   if (values.image) imageUrl = await uploadImage(values.image);
+
+  //   const productData = {
+  //     title: values.title.trim(),
+  //     price: Number(values.price),
+  //     description: values.description.trim(),
+  //     categoryId: Number(values.categoryId),
+  //     images: imageUrl ? [imageUrl] : ["https://placehold.co/600x400?text=No+Image"],
+  //   };
+
+  //   try {
+  //     const result = await insertProduct(productData);
+  //     console.log("Product created:", result);
+  //     form.reset();
+  //     if (fileInputRef.current) fileInputRef.current.value = "";
+  //   } catch (err) {
+  //     console.error(err);
+  //     form.setError("root", { message: "Failed to create product. Please try again." });
+  //   }
+  // }
 
   async function onSubmit(values: FormValues) {
     let imageUrl: string | null = null;
@@ -117,7 +147,9 @@ async function uploadImage(file: File): Promise<string | null> {
       price: Number(values.price),
       description: values.description.trim(),
       categoryId: Number(values.categoryId),
-      images: imageUrl ? [imageUrl] : ["https://placehold.co/600x400?text=No+Image"],
+      images: imageUrl
+        ? [imageUrl]
+        : ["https://placehold.co/600x400?text=No+Image"],
     };
 
     try {
@@ -125,9 +157,23 @@ async function uploadImage(file: File): Promise<string | null> {
       console.log("Product created:", result);
       form.reset();
       if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.success("Product created successfully!", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
     } catch (err) {
       console.error(err);
-      form.setError("root", { message: "Failed to create product. Please try again." });
+      form.setError("root", {
+        message: "Failed to create product. Please try again.",
+      });
+      toast.error("Failed to create product. Please try again.");
     }
   }
 
@@ -136,13 +182,14 @@ async function uploadImage(file: File): Promise<string | null> {
   return (
     <Card className="mx-auto w-full max-w-3xl shadow-sm border bg-card">
       <CardHeader className="pb-6">
-        <CardTitle className="text-2xl font-bold text-center">Add New Product</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">
+          Add New Product
+        </CardTitle>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
             <Controller
               control={form.control}
               name="title"
@@ -161,7 +208,13 @@ async function uploadImage(file: File): Promise<string | null> {
               render={({ field, fieldState }) => (
                 <Field>
                   <FieldLabel>Price (USD) *</FieldLabel>
-                  <Input type="number" step="0.01" min="0.01" placeholder="1299.00" {...field} />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="1299.00"
+                    {...field}
+                  />
                   <FieldError>{fieldState.error?.message}</FieldError>
                 </Field>
               )}
@@ -196,7 +249,11 @@ async function uploadImage(file: File): Promise<string | null> {
               render={({ field, fieldState }) => (
                 <Field className="md:col-span-2">
                   <FieldLabel>Description *</FieldLabel>
-                  <Textarea rows={5} placeholder="Describe features, specifications, condition..." {...field} />
+                  <Textarea
+                    rows={5}
+                    placeholder="Describe features, specifications, condition..."
+                    {...field}
+                  />
                   <FieldDescription className="text-xs mt-1.5">
                     Minimum 20 characters. Supports markdown.
                   </FieldDescription>
@@ -230,24 +287,38 @@ async function uploadImage(file: File): Promise<string | null> {
                   {!watchedImage ? (
                     <>
                       <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
-                      <p className="mt-4 text-sm font-medium">Click to upload or drag & drop</p>
-                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WebP up to 5MB</p>
+                      <p className="mt-4 text-sm font-medium">
+                        Click to upload or drag & drop
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG, WebP up to 5MB
+                      </p>
                     </>
                   ) : (
                     <div className="space-y-4">
                       {previewUrl && (
                         <div className="relative mx-auto w-40 h-40 rounded-md overflow-hidden border shadow-sm">
-                          <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                          <Image
+                            src={previewUrl}
+                            alt="Preview"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       )}
                       <div className="flex items-center justify-center gap-2 text-sm">
-                        <span className="font-medium truncate max-w-[200px]">{watchedImage.name}</span>
+                        <span className="font-medium truncate max-w-[200px]">
+                          {watchedImage.name}
+                        </span>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={(e) => { e.stopPropagation(); removeFile(); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile();
+                          }}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -269,8 +340,13 @@ async function uploadImage(file: File): Promise<string | null> {
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
               {isSubmitting ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Product...</>
-              ) : "Create Product"}
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating
+                  Product...
+                </>
+              ) : (
+                "Create Product"
+              )}
             </Button>
             <Button
               type="button"
@@ -284,6 +360,7 @@ async function uploadImage(file: File): Promise<string | null> {
             >
               Reset Form
             </Button>
+            <ToastContainer />
           </div>
         </form>
       </CardContent>

@@ -3,11 +3,13 @@ import { fetchListProducts } from "@/lib/data/products";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Bounce, ToastContainer } from "react-toastify";
 export const metadata: Metadata = {
-  title: 'Phsartech - Home',
-  description: 'Cambodia\'s leading online marketplace for buying and selling products. Discover a wide range of items, connect with local sellers, and enjoy a seamless shopping experience on Phsartech.'
-}
-  
+  title: "Phsartech - Home",
+  description:
+    "Cambodia's leading online marketplace for buying and selling products. Discover a wide range of items, connect with local sellers, and enjoy a seamless shopping experience on Phsartech.",
+};
+
 export default function Home() {
   return (
     <main className="flex flex-col items-center justify-start min-h-screen p-8 bg-gray-50">
@@ -66,8 +68,20 @@ export default function Home() {
           </p>
         </div>
       </section>
-      <ProductListCardClient fetchProducts={fetchListProducts()}/>
-      
+      <ProductListCardClient fetchProducts={fetchListProducts()} />
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </main>
   );
 }
